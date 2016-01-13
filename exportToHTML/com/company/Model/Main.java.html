@@ -1,0 +1,119 @@
+<html>
+<head>
+<title>Main.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.ln { color: rgb(0,0,0); font-weight: normal; font-style: normal; }
+.s0 { color: rgb(0,0,128); font-weight: bold; }
+.s1 { }
+.s2 { color: rgb(0,0,255); }
+.s3 { color: rgb(128,128,128); font-style: italic; }
+.s4 { color: rgb(0,128,0); font-weight: bold; }
+</style>
+</head>
+<BODY BGCOLOR="#ffffff">
+<TABLE CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#C0C0C0" >
+<TR><TD><CENTER>
+<FONT FACE="Arial, Helvetica" COLOR="#000000">
+Main.java</FONT>
+</center></TD></TR></TABLE>
+<pre>
+
+<span class="s0">package </span><span class="s1">com.company.Model; 
+ 
+</span><span class="s0">import </span><span class="s1">com.company.Parsers.BuildingsParser; 
+</span><span class="s0">import </span><span class="s1">com.company.Parsers.CriticalParser; 
+</span><span class="s0">import </span><span class="s1">com.company.Parsers.PeriodParser; 
+</span><span class="s0">import </span><span class="s1">org.json.JSONException; 
+ 
+</span><span class="s0">import </span><span class="s1">java.io.IOException; 
+</span><span class="s0">import </span><span class="s1">java.util.ArrayList; 
+</span><span class="s0">import </span><span class="s1">java.util.List; 
+ 
+</span><span class="s0">import </span><span class="s1">com.company.Model.Schedule; 
+ 
+</span><span class="s0">public class </span><span class="s1">Main { 
+    </span><span class="s0">private static final int </span><span class="s1">numIterations = </span><span class="s2">1000</span><span class="s1">; 
+ 
+    </span><span class="s0">public static void </span><span class="s1">main(String[] args) </span><span class="s0">throws </span><span class="s1">IOException, JSONException { 
+        </span><span class="s3">//====================  define problem  ===========================</span><span class="s1"> 
+        List&lt;Period&gt; bank; 
+        bank = PeriodParser.periodsParser(); 
+        List&lt;Period&gt; feasible; 
+        FindFeasible findFeasible = </span><span class="s0">new </span><span class="s1">FindFeasible(bank); 
+        feasible = findFeasible.feasibleResult(); 
+        List&lt;String&gt; critical; 
+        critical = CriticalParser.criticalParser(); 
+ 
+        ScheduleProblem problem = </span><span class="s0">new </span><span class="s1">ScheduleProblem(bank, feasible, critical); 
+        </span><span class="s3">//==================== solve =====================================</span><span class="s1"> 
+ 
+        List&lt;List&lt;Period&gt;&gt; solutions = </span><span class="s0">new </span><span class="s1">ArrayList&lt;List&lt;Period&gt;&gt;(); 
+        </span><span class="s0">int </span><span class="s1">i=</span><span class="s2">0</span><span class="s1">; 
+        </span><span class="s0">while </span><span class="s1">(i&lt;numIterations){ 
+            problem.iterator(); 
+            List&lt;Period&gt; particular = </span><span class="s0">new </span><span class="s1">ArrayList&lt;Period&gt;(); 
+            </span><span class="s0">for </span><span class="s1">(Period p: problem.getCurrentSchedule()){ 
+                particular.add(p); 
+            } 
+            solutions.add(particular); 
+            i++; 
+        } 
+        </span><span class="s0">int </span><span class="s1">count = </span><span class="s2">0</span><span class="s1">; 
+        List&lt;Period&gt; toCheck = solutions.get(</span><span class="s2">0</span><span class="s1">); 
+        </span><span class="s0">for </span><span class="s1">(List&lt;Period&gt; next: solutions){ 
+            </span><span class="s0">if </span><span class="s1">(toCheck.equals(next)){ 
+                count++; 
+            } 
+        } 
+ 
+        FindBest look = </span><span class="s0">new </span><span class="s1">FindBest(solutions); 
+        List&lt;Period&gt; finalSched = look.returnBest(); 
+ 
+        List&lt;Building&gt; campus = BuildingsParser.buildingsParser(); 
+        System.out.println(</span><span class="s4">&quot;Your total walking time is &quot; </span><span class="s1">+ look.calcValue(finalSched) + </span><span class="s4">&quot; [units].&quot;</span><span class="s1">); 
+        </span><span class="s0">int </span><span class="s1">numHours = </span><span class="s2">16</span><span class="s1">; 
+        </span><span class="s0">for </span><span class="s1">(</span><span class="s0">int </span><span class="s1">j = </span><span class="s2">0</span><span class="s1">; j &lt; numHours; j++) { 
+            </span><span class="s0">for </span><span class="s1">(Period next : finalSched) { 
+                </span><span class="s0">if </span><span class="s1">(next.getTime().equals(j)) { 
+                    System.out.println(</span><span class="s4">&quot;You're taking &quot; </span><span class="s1">+ next.getName() + </span><span class="s4">&quot; at &quot; </span><span class="s1">+ next.getTime() + </span><span class="s4">&quot; in &quot; </span><span class="s1">+ 
+                            next.findBuilding(campus).toString() + </span><span class="s4">&quot; &quot; </span><span class="s1">+ next.room + </span><span class="s4">&quot;.&quot;</span><span class="s1">); 
+                } 
+            } 
+        } 
+ 
+</span><span class="s3">/* 
+        List&lt;Schedule&gt; solutions = new ArrayList&lt;Schedule&gt;(); 
+        while (int i = 0 &lt; numIterations){ 
+ 
+        } 
+        for (int i = 0; i &lt; numIterations; i++) { 
+            problem.iterator(); 
+            Schedule particular = new Schedule(problem.getCurrentSchedule()); 
+            solutions.add(particular); 
+        } 
+        Schedule best = solutions.get(0); 
+        for (Schedule next : solutions) { 
+            if (next.valueCalc() &lt; best.valueCalc()) { 
+                best = next; 
+            } 
+        } 
+ 
+        //=====================  output  ===================================== 
+        List&lt;Building&gt; campus = BuildingsParser.buildingsParser(); 
+        System.out.println(&quot;Your total walking time is &quot; + problem.problemValue() + &quot; [units].&quot;); 
+        int numHours = 16; 
+        for (int j = 0; j &lt; numHours; j++) { 
+            for (Period next : best.sched) { 
+                if (next.getTime().equals(j)) { 
+                    System.out.println(&quot;You're taking &quot; + next.getName() + &quot; at &quot; + next.getTime() + &quot; in &quot; + 
+                            next.findBuilding(campus).toString() + &quot; &quot; + next.room + &quot;.&quot;); 
+                } 
+            } 
+        } 
+    } 
+    */</span><span class="s1"> 
+    } 
+}</span></pre>
+</body>
+</html>
