@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class FindBest {
     List<List<Period>> solutions;
+    List<Schedule> solns;
 
     public FindBest(List<List<Period>> solutions) {
         this.solutions = solutions;
