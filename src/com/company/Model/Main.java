@@ -23,7 +23,7 @@ public class Main {
         feasible = findFeasible.feasibleResult();
         List<String> critical;
         critical = CriticalParser.criticalParser();
-
+        ScheduleProblem scheduleProblem = new ScheduleProblem();
         ScheduleProblem problem = new ScheduleProblem(bank, feasible, critical);
 
         //==================== solve =====================================

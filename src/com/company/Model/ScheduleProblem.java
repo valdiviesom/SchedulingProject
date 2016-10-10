@@ -1,5 +1,10 @@
 package com.company.Model;
 
+import com.company.Parsers.CriticalParser;
+import com.company.Parsers.PeriodParser;
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -9,27 +14,40 @@ import java.util.Random;
  * Created by Mauricio on 11/8/2015.
  */
 public class ScheduleProblem {
-    List<Period> bank;
-    private List<Period> currentSchedule;
-    List<String> criticalSubjects;
+    private List<Period> bank;
+    private Schedule currentSchedule;
+    private List<String> criticalSubjects;
 
+    public ScheduleProblem() throws IOException, JSONException {
+        bank = PeriodParser.periodsParser();
+        criticalSubjects = CriticalParser.criticalParser();
+        findInitialFeasible();
+    }
 
-    public ScheduleProblem(List<Period> bank, List<Period> feasible, List<String> criticalSubjects) {
+    public void findInitialFeasible() {
+        List<List<Period>> filteredBankList = new ArrayList<List<Period>>();
+        for (String s : criticalSubjects) {
+            filteredBankList.add(filterBank(s));
+        }
+        for (int i = 0; i < 10; i++) {
+            currentSchedule.addPeriod(filteredBankList.get(i).get(0));
+        }
+    }
+
+    public Schedule getCurrentSchedule() {
+        return currentSchedule;
+    }
+
+    public ScheduleProblem(List<Period> bank, Schedule feasible, List<String> criticalSubjects) {
         this.bank = bank;
         this.currentSchedule = feasible;
         this.criticalSubjects = criticalSubjects;
+    }
 
-    }
-    public List<Period> getCurrentSchedule(){
-        return currentSchedule;
-    }
-    public List<Period> getBank(){
-        return bank;
-    }
 
     public boolean isTimeOccupied(int t) {
         int x = 0;
-        for (Period next : currentSchedule) {
+        for (Period next : currentSchedule.getSchedule()) {
             if (next.getTime() == t) {
                 x = 1;
             }
@@ -37,91 +55,55 @@ public class ScheduleProblem {
         return (x == 1);
     }
 
-    // Remove a Period from currentSchedule, if its there
-    public void removePeriod(Period ts) {
-        if (currentSchedule.contains(ts)) currentSchedule.remove(ts);
-    }
-
-    public void addPeriod(Period ts) {
-        boolean taken = false;
-        Period toRemove = null;
-        // check if TimeSlot is already taken, record if so
-        for (Period next : currentSchedule) {
-            if (next.getTime().equals(ts.getTime())) {
-                taken = true;
-                toRemove = next;
-            }
-        }
-        if (taken) {
-            this.removePeriod(toRemove);
-        }
-        currentSchedule.add(ts);
-    }
-
-    // check if a critical class is in the current schedule
-    public boolean criticalInCurrent(String critical) {
-        int a = 0;
-        for (Period next2 : currentSchedule) {
-            if (next2.getName().equalsIgnoreCase(critical)) {
-                a = 1;
-            }
-        }
-        return (a == 1);
-    }
 
     public boolean hasAllSubjects() {
-        boolean x = true;
-        for (String next : criticalSubjects) {
-            int a = 0;
-            for (Period next2 : currentSchedule) {
-                if (next2.getName().equalsIgnoreCase(next)) {
-                    a = 1;
-                }
-            }
-            if (a == 0) {
-                x = false;
-            }
+        for (String s : criticalSubjects) {
+            if (!(currentSchedule.criticalInCurrent(s)))
+                return false;
         }
-        return x;
+        return true;
     }
 
-    public List<Period> filterBank(String name){
+    public List<Period> filterBank(String name) {
         List<Period> result = new ArrayList<Period>();
-        for (Period next: bank){
-            if (next.getName().equals(name)){
+        for (Period next : bank) {
+            if (next.getName().equals(name)) {
                 result.add(next);
             }
         }
         return result;
     }
-    public Period randomToIterate(){
+
+    public Period randomToIterate() {
         Random x = new Random();
         int y = x.nextInt(currentSchedule.size());
-        return currentSchedule.get(y);
+        return currentSchedule.getPeriod(y);
     }
-    public List<String> namesInCurrentSchedule(){
+
+    public List<String> namesInCurrentSchedule() {
         List<String> strings = new ArrayList<String>();
-        for (Period next: currentSchedule){
+        for (Period next : currentSchedule.getSchedule()) {
             strings.add(next.getName());
         }
         return strings;
     }
-    public String missingSubject(String original){
+
+    public String missingSubject(String original) {
         String result = original;
-        for (String next: criticalSubjects){
+        for (String next : criticalSubjects) {
             if (!namesInCurrentSchedule().contains(next))
                 result = next;
         }
         return result;
     }
-    public void iterator(){
+
+    public void iterator() {
         // find which Subject to iterate
         Period toIterate = randomToIterate();
         //removePeriod(toIterate);
-        currentSchedule.remove(toIterate);
+        currentSchedule.removePeriod(toIterate);
         String nameToIterate = toIterate.getName();
         while (!hasAllSubjects()) {
-
             // Get everywhere that subject can be replaced to
             List<Period> toChoose;
             toChoose = filterBank(nameToIterate);
@@ -129,7 +111,7 @@ public class ScheduleProblem {
             Random q = new Random();
             int z = q.nextInt(toChoose.size());
             Period putIn = toChoose.get(z);
-            addPeriod(putIn);
+            currentSchedule.addPeriod(putIn);
             //currentSchedule.add(putIn);
             nameToIterate = missingSubject(nameToIterate);
         }
