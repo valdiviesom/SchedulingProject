@@ -21,17 +21,20 @@ public class ScheduleProblem {
     public ScheduleProblem() throws IOException, JSONException {
         bank = PeriodParser.periodsParser();
         criticalSubjects = CriticalParser.criticalParser();
-        findInitialFeasible();
+        currentSchedule = new Schedule(findInitialFeasible());
+        iterator();
     }
 
-    public void findInitialFeasible() {
+    public List<Period> findInitialFeasible() {
+        List<Period> rsf = new ArrayList<Period>();
         List<List<Period>> filteredBankList = new ArrayList<List<Period>>();
         for (String s : criticalSubjects) {
             filteredBankList.add(filterBank(s));
         }
         for (int i = 0; i < 10; i++) {
-            currentSchedule.addPeriod(filteredBankList.get(i).get(0));
+            rsf.add(filteredBankList.get(i).get(0));
         }
+        return rsf;
     }
 
     public Schedule getCurrentSchedule() {
@@ -115,6 +118,7 @@ public class ScheduleProblem {
             //currentSchedule.add(putIn);
             nameToIterate = missingSubject(nameToIterate);
         }
+        currentSchedule.updateCost();
     }
 
 

@@ -10,22 +10,21 @@ public class Schedule {
     private List<Period> sched;
     private int cost;
 
+
     public Schedule(List<Period> sched) {
         this.sched = sched;
-    }
-
-    public Schedule(List<Period> sched, boolean evalCost) {
-        this.sched = sched;
-        if (evalCost) cost = calcCost(sched);
+        cost = calcCost(sched);
     }
 
     public List<Period> getSchedule() {
         return sched;
     }
-    public int size(){
+
+    public int size() {
         return sched.size();
     }
-    public Period getPeriod(int index){
+
+    public Period getPeriod(int index) {
         return sched.get(index);
     }
 
@@ -58,11 +57,11 @@ public class Schedule {
     }
 
 
-    public int cost() {
+    public int getCost() {
         return cost;
     }
 
-    public Schedule findBest(List<Schedule> solutions) {
+    public static Schedule findBest(List<Schedule> solutions) {
         Schedule rsf = solutions.get(0);
         for (Schedule next : solutions) {
             if (next.cost < rsf.cost) rsf = next;
@@ -80,7 +79,7 @@ public class Schedule {
         return result;
     }
 
-    public List<Period> sort(List<Period> given) {
+    public static List<Period> sort(List<Period> given) {
         int upperBound = 50;
         int counter = 0;
         List<Period> rsf = new ArrayList<Period>();
@@ -97,7 +96,7 @@ public class Schedule {
 
 
     // takes a sorted day Schedule.
-    public int calcDayCost(List<Period> given) {
+    public static int calcDayCost(List<Period> given) {
         if (given.size() == 0) return 0;
         int bLx = 13; // bus loop X
         int bLy = 19; // bus loop Y
@@ -111,7 +110,7 @@ public class Schedule {
         // walk to bus loop
         rsf += Math.abs(current.getX() - bLx)
                 + Math.abs(current.getY() - bLy);
-        return rsf;
+        return rsf * 50;
     }
 
     public int calcCost(List<Period> currentSchedule) {
@@ -149,9 +148,17 @@ public class Schedule {
         // T2 TTH
         int t2tth = calcDayCost(t2tthL);
 
-        return (3 * t1mwf + 2 * t1tth + 3 * t2mwf + 2 * t2tth) * 50; // 50 was the proportionality in our grid
+        return (3 * t1mwf + 2 * t1tth + 3 * t2mwf + 2 * t2tth); // 50 was the proportionality in our grid
     }
 
+    public void updateCost() {
+        cost = calcCost(sched);
+    }
+
+    public static boolean contains(List<Schedule> solutions, Schedule other) {
+        if (solutions.size() == 0) return false;
+        return other.equals(solutions.get(0)) || contains(solutions.subList(1, solutions.size()), other);
+    }
 
     @Override
     public boolean equals(Object o) {

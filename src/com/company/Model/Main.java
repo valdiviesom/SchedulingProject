@@ -1,52 +1,43 @@
 package com.company.Model;
 
 import com.company.Parsers.BuildingsParser;
-import com.company.Parsers.CriticalParser;
-import com.company.Parsers.PeriodParser;
 import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Main {
-    private static final int numIterations = (int) 100;
-    static final boolean computeDataAnalysis = false;
+    private static final int numIterations = (int) 1000;
+    static final boolean computeDataAnalysis = true;
 
     public static void main(String[] args) throws IOException, JSONException {
         long startTime = System.nanoTime();
         //====================  define problem  ===========================
-        List<Period> bank;
-        bank = PeriodParser.periodsParser();
-        List<Period> feasible;
-        FindFeasible findFeasible = new FindFeasible(bank);
-        feasible = findFeasible.feasibleResult();
-        List<String> critical;
-        critical = CriticalParser.criticalParser();
         ScheduleProblem scheduleProblem = new ScheduleProblem();
-        ScheduleProblem problem = new ScheduleProblem(bank, feasible, critical);
 
         //==================== solve =====================================
 
-        List<List<Period>> solutions = new ArrayList<List<Period>>();
-        problem.iterator();
-        int i = 0;
-        while (i < numIterations) {
-            problem.iterator();
-            List<Period> particular = new ArrayList<Period>();
-            for (Period p : problem.getCurrentSchedule()) {
-                particular.add(p);
+        List<Schedule> solutions = new LinkedList<Schedule>();
+        int bestCost = scheduleProblem.getCurrentSchedule().getCost();
+        int bestIteration = 0;
+        solutions.add(scheduleProblem.getCurrentSchedule());
+        for (int i = 0; i < numIterations; i++) {
+            scheduleProblem.iterator();
+            if (Schedule.contains(solutions, scheduleProblem.getCurrentSchedule())
+                    && scheduleProblem.getCurrentSchedule().getCost() < bestCost) {
+                solutions.add(scheduleProblem.getCurrentSchedule());
+                bestCost = scheduleProblem.getCurrentSchedule().getCost();
+                bestIteration = i;
             }
-            solutions.add(particular);
-            i++;
-        }
 
+        }
         //=====================  output  =====================================
-        FindBest fb = new FindBest(solutions);
-        List<Period> finalSched = fb.returnBest();
+        Schedule bestSchedule = Schedule.findBest(solutions);
         List<Building> campus = BuildingsParser.buildingsParser();
 
-
+        // time breakpoints
         int d1 = 10;
         int d2 = 16;
         int d3 = 26;
@@ -55,7 +46,7 @@ public class Main {
         List<Period> t1tthL = new ArrayList<Period>();
         List<Period> t2mwfL = new ArrayList<Period>();
         List<Period> t2tthL = new ArrayList<Period>();
-        for (Period next : finalSched) {
+        for (Period next : bestSchedule.getSchedule()) {
             if (next.getTime() <= d1) {
                 t1mwfL.add(next);
             } else if (next.getTime() <= d2) {
@@ -66,14 +57,14 @@ public class Main {
                 t2tthL.add(next);
             }
         }
-        t1mwfL = fb.sort(t1mwfL);
-        t1tthL = fb.sort(t1tthL);
-        t2mwfL = fb.sort(t2mwfL);
-        t2tthL = fb.sort(t2tthL);
-        int w1 = fb.calcValue(t1mwfL);
-        int w2 = fb.calcValue(t1tthL);
-        int w3 = fb.calcValue(t2mwfL);
-        int w4 = fb.calcValue(t2tthL);
+        t1mwfL = Schedule.sort(t1mwfL);
+        t1tthL = Schedule.sort(t1tthL);
+        t2mwfL = Schedule.sort(t2mwfL);
+        t2tthL = Schedule.sort(t2tthL);
+        int w1 = Schedule.calcDayCost(t1mwfL);
+        int w2 = Schedule.calcDayCost(t1tthL);
+        int w3 = Schedule.calcDayCost(t2mwfL);
+        int w4 = Schedule.calcDayCost(t2tthL);
 
         System.out.println("        ====    Your Schedule is:    ====");
         if (t1mwfL.size() + t1tthL.size() > 0) {
@@ -142,30 +133,19 @@ public class Main {
 
 
         System.out.println("        ==== Walking Time Improvement ====");
-        List<List<Period>> seeImprovement = fb.improvingList();
-        for (int j = 0; j < seeImprovement.size(); j++) {
-            int k = j + 1;
+        for (int j = 0; j < solutions.size(); j++) {
             System.out.println("Walking time at schedule improvement " +
-                    k + " is " + fb.calcValue(seeImprovement.get(j)) + " meters.");
+                    (j + 1) + " is " + solutions.get(j).getCost() + " meters.");
         }
 
         System.out.println("        ====    Total Walking Distance    ====");
-        System.out.println("Your total walking distance is " + fb.calcValue(finalSched) + " meters.");
+        System.out.println("Your total walking distance is " + bestCost + " meters.");
         // ================ Analysis ====================
         if (computeDataAnalysis) {
             System.out.println("        ====   Data Analysis   ====");
-            int iterationsCounter = 0;
-            boolean alreadyFound = false;
-            int toCompare = fb.calcValue(finalSched);
-            for (List<Period> next : solutions) {
-                if (fb.calcValue(next) == toCompare && !alreadyFound) {
-                    System.out.println("The optimum schedule was found at iteration # "
-                            + iterationsCounter + ", having run " + numIterations + " iterations.");
-                    alreadyFound = true;
-                } else iterationsCounter++;
-            }
-            int distinctSolutions = fb.distinct();
-            System.out.println("There are " + distinctSolutions + " distinct schedules computed.");
+            System.out.println("The optimum schedule was found at iteration # "
+                    + bestIteration + ", having run " + numIterations + " iterations.");
+            System.out.println("There were " + solutions.size() + " distinct and non-decreasing-cost schedules computed.");
             long dataTime = System.nanoTime();
             System.out.println("Local Optimum Schedule runtime: " + (schedTime - startTime) / (1E9) + " seconds.");
             System.out.println("Data Analysis runtime: " + (dataTime - schedTime) / (1E9) + " seconds.");
