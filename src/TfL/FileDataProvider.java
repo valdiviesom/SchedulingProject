@@ -1,4 +1,4 @@
-package com.company.TfL;
+package TfL;
 
 import java.io.FileInputStream;
 import java.io.IOException;

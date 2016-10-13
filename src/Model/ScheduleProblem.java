@@ -1,8 +1,8 @@
-package com.company.Model;
+package Model;
 
-import com.company.Parsers.BuildingsParser;
-import com.company.Parsers.CriticalParser;
-import com.company.Parsers.PeriodParser;
+import Parsers.BuildingsParser;
+import Parsers.CriticalParser;
+import Parsers.PeriodParser;
 import org.json.JSONException;
 
 import java.io.IOException;

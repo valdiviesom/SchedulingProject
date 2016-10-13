@@ -1,4 +1,4 @@
-package com.company.Model;
+package Model;
 
 import org.json.JSONException;
 

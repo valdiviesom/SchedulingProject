@@ -1,6 +1,6 @@
-package com.company.Parsers;
-import com.company.TfL.DataProvider;
-import com.company.TfL.FileDataProvider;
+package Parsers;
+import TfL.DataProvider;
+import TfL.FileDataProvider;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

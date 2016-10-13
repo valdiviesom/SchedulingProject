@@ -1,4 +1,4 @@
-package com.company.TfL;
+package TfL;
 
 import java.io.BufferedReader;
 import java.io.IOException;

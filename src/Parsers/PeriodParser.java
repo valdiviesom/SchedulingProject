@@ -1,8 +1,8 @@
-package com.company.Parsers;
-import com.company.Model.Building;
-import com.company.Model.Period;
-import com.company.TfL.DataProvider;
-import com.company.TfL.FileDataProvider;
+package Parsers;
+import Model.Building;
+import Model.Period;
+import TfL.DataProvider;
+import TfL.FileDataProvider;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
