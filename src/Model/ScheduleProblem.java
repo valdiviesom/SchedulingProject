@@ -6,10 +6,7 @@ import Parsers.PeriodParser;
 import org.json.JSONException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 
 /**
@@ -24,9 +21,18 @@ public class ScheduleProblem {
 
     public ScheduleProblem() throws IOException, JSONException {
         bank = PeriodParser.periodsParser();
-        criticalSubjects = CriticalParser.criticalParser();
+        //criticalSubjects = CriticalParser.criticalParser(); // for a future expansion with electives
+        criticalSubjects=allRequiredCourses();
         currentSchedule = new Schedule(findInitialFeasible());
         iterator();
+    }
+
+    public List<String> allRequiredCourses() {
+        Set<String> c = new HashSet<String>();
+        for (Period period : bank) {
+            c.add(period.getName());
+        }
+        return new ArrayList<String>(c);
     }
 
     public List<Period> findInitialFeasible() {
@@ -124,6 +130,7 @@ public class ScheduleProblem {
         }
         currentSchedule.updateCost();
     }
+
     public static void main(String[] args) throws IOException, JSONException {
         long startTime = System.nanoTime();
         //====================  define problem  ===========================
@@ -263,7 +270,6 @@ public class ScheduleProblem {
             System.out.println("Data Analysis runtime: " + (dataTime - schedTime) / (1E9) + " seconds.");
         }
     }
-
 
 
 }
